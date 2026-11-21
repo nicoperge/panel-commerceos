@@ -4,6 +4,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { createSPASassClientAuthenticated as createSPASassClient } from '@/lib/supabase/client';
 import { Database } from '@/lib/types';
+import { db } from '@/lib/roles';
 
 type User = {
     email: string;
@@ -40,8 +41,8 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
                     registered_at: new Date(user.created_at)
                 });
 
-                const { data } = await client.from('perfiles').select('*').eq('id', user.id).maybeSingle();
-                setPerfil(data);
+                const { data } = await db().from('perfiles').select('*').eq('id', user.id).maybeSingle();
+                setPerfil(data as Perfil | null);
             } catch (error) {
                 console.error('Error loading data:', error);
             } finally {

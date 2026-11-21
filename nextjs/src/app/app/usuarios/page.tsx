@@ -1,11 +1,9 @@
 "use client";
 import React, { useEffect, useState, useCallback } from 'react';
 import { useGlobal, Perfil } from '@/lib/context/GlobalContext';
-import { createSPAClient } from '@/lib/supabase/client';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Users, UserCheck, Clock, Activity } from 'lucide-react';
-import { ROLES, PLANES, ESTADOS, fechaCorta } from '@/lib/roles';
-import { Database } from '@/lib/types';
+import { ROLES, PLANES, ESTADOS, fechaCorta, db } from '@/lib/roles';
 
 const SIETE_DIAS = 7 * 24 * 60 * 60 * 1000;
 
@@ -18,9 +16,9 @@ export default function UsuariosPage() {
     const esSuperadmin = perfil?.rol === 'superadmin' && perfil?.estado === 'activo';
 
     const cargar = useCallback(async () => {
-        const { data, error } = await createSPAClient().from('perfiles').select('*').order('created_at');
+        const { data, error } = await db().from('perfiles').select('*').order('created_at');
         if (error) return setError('No se pudieron cargar los usuarios: ' + error.message);
-        setUsuarios(data ?? []);
+        setUsuarios((data ?? []) as Perfil[]);
     }, []);
 
     useEffect(() => { if (esSuperadmin) cargar(); }, [esSuperadmin, cargar]);
@@ -28,7 +26,7 @@ export default function UsuariosPage() {
     async function cambiar(id: string, campo: 'rol' | 'plan' | 'estado', valor: string) {
         setMensaje(''); setError('');
         if (id === perfil?.id && (campo === 'rol' || campo === 'estado') && !confirm('Estás cambiando tu propio acceso. Podés perder el panel de superadmin. ¿Seguro?')) return;
-        const { error } = await createSPAClient().from('perfiles').update({ [campo]: valor } as Database['public']['Tables']['perfiles']['Update']).eq('id', id);
+        const { error } = await db().from('perfiles').update({ [campo]: valor }).eq('id', id);
         if (error) return setError('No se pudo guardar: ' + error.message);
         setMensaje('Guardado.');
         cargar();
