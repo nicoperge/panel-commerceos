@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { createSPASassClientAuthenticated as createSPASassClient } from '@/lib/supabase/client';
-
+import { Database } from '@/lib/types';
 
 type User = {
     email: string;
@@ -11,16 +11,20 @@ type User = {
     registered_at: Date;
 };
 
+export type Perfil = Database['public']['Tables']['perfiles']['Row'];
+
 interface GlobalContextType {
     loading: boolean;
-    user: User | null;  // Add this
+    user: User | null;
+    perfil: Perfil | null;
 }
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 
 export function GlobalProvider({ children }: { children: React.ReactNode }) {
     const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState<User | null>(null);  // Add this
+    const [user, setUser] = useState<User | null>(null);
+    const [perfil, setPerfil] = useState<Perfil | null>(null);
 
     useEffect(() => {
         async function loadData() {
@@ -28,18 +32,16 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
                 const supabase = await createSPASassClient();
                 const client = supabase.getSupabaseClient();
 
-                // Get user data
                 const { data: { user } } = await client.auth.getUser();
-                if (user) {
-                    setUser({
-                        email: user.email!,
-                        id: user.id,
-                        registered_at: new Date(user.created_at)
-                    });
-                } else {
-                    throw new Error('User not found');
-                }
+                if (!user) throw new Error('User not found');
+                setUser({
+                    email: user.email!,
+                    id: user.id,
+                    registered_at: new Date(user.created_at)
+                });
 
+                const { data } = await client.from('perfiles').select('*').eq('id', user.id).maybeSingle();
+                setPerfil(data);
             } catch (error) {
                 console.error('Error loading data:', error);
             } finally {
@@ -51,7 +53,7 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     return (
-        <GlobalContext.Provider value={{ loading, user }}>
+        <GlobalContext.Provider value={{ loading, user, perfil }}>
             {children}
         </GlobalContext.Provider>
     );

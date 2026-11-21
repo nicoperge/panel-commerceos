@@ -1,78 +1,69 @@
 "use client";
 import React from 'react';
+import Link from 'next/link';
 import { useGlobal } from '@/lib/context/GlobalContext';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { CalendarDays, Settings, ExternalLink } from 'lucide-react';
-import Link from 'next/link';
+import { Users } from 'lucide-react';
+import { ROLES, PLANES, ESTADOS } from '@/lib/roles';
 
-export default function DashboardContent() {
-    const { loading, user } = useGlobal();
-
-    const getDaysSinceRegistration = () => {
-        if (!user?.registered_at) return 0;
-        const today = new Date();
-        const diffTime = Math.abs(today.getTime() - user.registered_at.getTime());
-        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    };
+export default function Inicio() {
+    const { loading, user, perfil } = useGlobal();
 
     if (loading) {
+        return <div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div></div>;
+    }
+
+    const nombre = perfil?.nombre || user?.email?.split('@')[0];
+
+    if (!perfil || perfil.estado !== 'activo') {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+            <div className="p-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Hola, {nombre}</CardTitle>
+                        <CardDescription>
+                            {perfil?.estado === 'suspendido'
+                                ? 'Tu cuenta está suspendida. Hablá con el administrador.'
+                                : 'Tu cuenta está pendiente. Cuando el superadmin la apruebe, vas a poder usar el panel.'}
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
             </div>
         );
     }
-
-    const daysSinceRegistration = getDaysSinceRegistration();
 
     return (
         <div className="space-y-6 p-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Welcome, {user?.email?.split('@')[0]}! 👋</CardTitle>
-                    <CardDescription className="flex items-center gap-2">
-                        <CalendarDays className="h-4 w-4" />
-                        Member for {daysSinceRegistration} days
+                    <CardTitle>Hola, {nombre}</CardTitle>
+                    <CardDescription>
+                        Rol: <b>{ROLES[perfil.rol]}</b> · Plan: <b>{PLANES[perfil.plan]}</b> · Estado: <b>{ESTADOS[perfil.estado]}</b>
                     </CardDescription>
                 </CardHeader>
             </Card>
 
-            {/* Quick Actions */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Quick Actions</CardTitle>
-                    <CardDescription>Frequently used features</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid gap-4 md:grid-cols-2">
-                        <Link
-                            href="/app/user-settings"
-                            className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                            <div className="p-2 bg-primary-50 rounded-full">
-                                <Settings className="h-4 w-4 text-primary-600" />
-                            </div>
+            {perfil.rol === 'superadmin' && (
+                <Card>
+                    <CardContent className="p-4">
+                        <Link href="/app/usuarios" className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                            <div className="p-2 bg-primary-50 rounded-full"><Users className="h-4 w-4 text-primary-600" /></div>
                             <div>
-                                <h3 className="font-medium">User Settings</h3>
-                                <p className="text-sm text-gray-500">Manage your account preferences</p>
+                                <h3 className="font-medium">Usuarios</h3>
+                                <p className="text-sm text-gray-500">Ver y administrar todos los usuarios, roles y planes</p>
                             </div>
                         </Link>
+                    </CardContent>
+                </Card>
+            )}
 
-                        <Link
-                            href="/app/table"
-                            className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                            <div className="p-2 bg-primary-50 rounded-full">
-                                <ExternalLink className="h-4 w-4 text-primary-600" />
-                            </div>
-                            <div>
-                                <h3 className="font-medium">Example Page</h3>
-                                <p className="text-sm text-gray-500">Check out example features</p>
-                            </div>
-                        </Link>
-                    </div>
-                </CardContent>
-            </Card>
+            {perfil.rol === 'empresa' && (
+                <Card><CardHeader><CardTitle>Panel de empresa</CardTitle><CardDescription>Acá vas a ver las ventas, el stock y los vendedores de tu comercio.</CardDescription></CardHeader></Card>
+            )}
+
+            {perfil.rol === 'vendedor' && (
+                <Card><CardHeader><CardTitle>Panel de vendedor</CardTitle><CardDescription>Acá vas a ver tus ventas y los clientes de tu local.</CardDescription></CardHeader></Card>
+            )}
         </div>
     );
 }

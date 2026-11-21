@@ -9,10 +9,11 @@ import {
     X,
     ChevronDown,
     LogOut,
-    Key, Files, LucideListTodo,
+    Key, Users,
 } from 'lucide-react';
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClient } from "@/lib/supabase/client";
+import { ROLES } from "@/lib/roles";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -21,7 +22,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
 
 
-    const { user } = useGlobal();
+    const { user, perfil } = useGlobal();
 
     const handleLogout = async () => {
         try {
@@ -45,10 +46,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const productName = process.env.NEXT_PUBLIC_PRODUCTNAME;
 
     const navigation = [
-        { name: 'Homepage', href: '/app', icon: Home },
-        { name: 'Example Storage', href: '/app/storage', icon: Files },
-        { name: 'Example Table', href: '/app/table', icon: LucideListTodo },
-        { name: 'User Settings', href: '/app/user-settings', icon: User },
+        { name: 'Inicio', href: '/app', icon: Home },
+        ...(perfil?.rol === 'superadmin' && perfil?.estado === 'activo'
+            ? [{ name: 'Usuarios', href: '/app/usuarios', icon: Users }] : []),
+        { name: 'Mi cuenta', href: '/app/user-settings', icon: User },
     ];
 
     const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
@@ -129,7 +130,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         {isUserDropdownOpen && (
                             <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg border">
                                 <div className="p-2 border-b border-gray-100">
-                                    <p className="text-xs text-gray-500">Signed in as</p>
+                                    <p className="text-xs text-gray-500">Conectado como {perfil ? ROLES[perfil.rol] : ''}</p>
                                     <p className="text-sm font-medium text-gray-900 truncate">
                                         {user?.email}
                                     </p>
@@ -143,7 +144,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                                         className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                                     >
                                         <Key className="mr-3 h-4 w-4 text-gray-400"/>
-                                        Change Password
+                                        Cambiar contraseña
                                     </button>
                                     <button
                                         onClick={() => {
@@ -153,7 +154,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                                         className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                                     >
                                         <LogOut className="mr-3 h-4 w-4 text-red-400"/>
-                                        Sign Out
+                                        Salir
                                     </button>
                                 </div>
                             </div>

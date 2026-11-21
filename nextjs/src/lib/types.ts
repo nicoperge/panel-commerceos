@@ -39,6 +39,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      perfiles: {
+        Row: {
+          id: string
+          email: string
+          nombre: string | null
+          empresa: string | null
+          rol: "superadmin" | "empresa" | "vendedor"
+          plan: "gratis" | "basico" | "pro"
+          estado: "activo" | "pendiente" | "suspendido"
+          ultimo_ingreso: string | null
+          created_at: string
+        }
+        Insert: {
+          id: string
+          email: string
+          nombre?: string | null
+          empresa?: string | null
+          rol?: "superadmin" | "empresa" | "vendedor"
+          plan?: "gratis" | "basico" | "pro"
+          estado?: "activo" | "pendiente" | "suspendido"
+          ultimo_ingreso?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string
+          nombre?: string | null
+          empresa?: string | null
+          rol?: "superadmin" | "empresa" | "vendedor"
+          plan?: "gratis" | "basico" | "pro"
+          estado?: "activo" | "pendiente" | "suspendido"
+          ultimo_ingreso?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       todo_list: {
         Row: {
           created_at: string
